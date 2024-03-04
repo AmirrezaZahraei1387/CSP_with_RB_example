@@ -39,9 +39,9 @@ class CSPInstance:
                 other_var = next(v for v in const if v != var)
                 if assignments.get(other_var) is not None:
                     if (value, assignments[other_var]) in inc_tuples:
-                        assignments.pop(var)    # incompatible assignment is found
+                        assignments.pop(var)  # incompatible assignment is found
                         return False
-        assignments.pop(var)    # no incompatible assignment found.
+        assignments.pop(var)  # no incompatible assignment found.
         return True
 
     def __undo_d(self, incomplete_assignments: dict, assignments: dict):
@@ -132,7 +132,6 @@ class CSPInstance:
                         return result
                 del assignments[var]
                 self.__undo_d({var: value}, assignments)
-
         return None
 
     def __ful_look_ahead(self, assignments: dict):
@@ -209,7 +208,20 @@ class RBModel:
         p_d_squared = int(round(self.__tightness * self.domain_size ** 2))
 
         for _ in range(self.num_constraints):
-            variables = np.random.choice(self.__variables, size=2, replace=False)
+
+            flag = False
+
+            while True:
+                variables = np.random.choice(self.__variables, size=2, replace=False)
+                for v, _ in constraints:
+                    if ((variables[0] == v[0] and variables[1] == v[1]) or (variables[0] == v[1] and
+                                                                            variables[1] == v[0])):
+                        flag = True
+                        break
+                if flag:
+                    flag = False
+                    continue
+                break
 
             incompatible_tuples = []
             for _ in range(p_d_squared):
@@ -246,7 +258,6 @@ def run_strategy(func):
 
 
 def main():
-
     varCount = int(input("enter the number of variables: "))
     tightness = float(input("enter the tightness: "))
     alpha = float(input("enter the constant alpha: "))
@@ -274,4 +285,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
