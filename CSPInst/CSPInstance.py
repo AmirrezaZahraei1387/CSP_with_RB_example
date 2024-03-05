@@ -78,9 +78,6 @@ class CSPInstance:
                     if queue.count(u) == 0:
                         queue.append(u)
 
-    def __forward_checking(self, var: object, assignment: dict):
-
-
     def __backTrackSearch(self, assignments):
         """
         the internal method for backtracking.
