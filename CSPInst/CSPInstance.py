@@ -1,4 +1,3 @@
-
 class CSPInstance:
     """
     creating binary CSP instances by a given set of variables, domain and constraints.
@@ -12,6 +11,7 @@ class CSPInstance:
     A simple arc-consistency is implemented using revision method. You can run it after the
     creation of the model.
     """
+
     def __init__(self, varsD: dict, constraints: dict):
         """
         :param varsD: is a dict object of the form {Var: ["domain of the variable", value1, value2, ...]}
@@ -61,11 +61,26 @@ class CSPInstance:
         violate from their domains. Mainly used for arc_consistency(ac3)
         """
         revised = False
-        for value1 in self.__varsD[constraint[0]]:
 
-            if all((value1, value2) in self.__constraints[constraint] for value2 in self.__varsD[constraint[1]]):
-                self.__varsD[constraint[0]].remove(value1)
-                revised = True
+        if constraint not in self.__constraints.keys():
+            return False
+
+        for var in constraint:
+            other_var = next(x for x in constraint if x != var)
+            for value1 in self.__varsD[var]:
+
+                flag = True
+
+                for value2 in self.__varsD[other_var]:
+                    x = list(constraint)
+                    x[x.index(var)] = value1
+                    x[x.index(other_var)] = value2
+                    if tuple(x) not in self.__constraints[constraint]:
+                        flag = False
+                        break
+                if flag:
+                    self.__varsD[var].remove(value1)
+                    revised = True
         return revised
 
     def __arc_consistency(self):
@@ -75,8 +90,75 @@ class CSPInstance:
             constraint = queue.pop(0)
             if self.__ac3Revision(constraint):
                 for u in self.__constraints:
-                    if queue.count(u) == 0:
+                    if u not in queue and u[0] != constraint[1]:
                         queue.append(u)
+
+    def __forward_checking(self, assignments: dict):
+        queue = [(constraint[1], constraint[0])
+                 for constraint in self.__constraints
+                 if constraint[1] not in assignments.keys()]
+
+        notConsistent = False
+
+        while queue and not notConsistent:
+            constraint = queue.pop(0)
+            if self.__ac3Revision(constraint):
+                notConsistent = self.__varsD[constraint[0]]
+        return not notConsistent
+
+    def __full_look_ahead(self, assignments: dict):
+        queue = [(constraint[1], constraint[0])
+                 for constraint in self.__constraints
+                 if constraint[1] not in assignments.keys()]
+
+        notConsistent = False
+
+        while queue and not notConsistent:
+
+            constraint = queue.pop(0)
+
+            if self.__ac3Revision(constraint):
+                for c in self.__constraints[constraint]:
+                    if c[1] == constraint[0] and c[0] != constraint[1] and c not in queue:
+                        queue.append(c)
+
+                notConsistent = self.__varsD[constraint[0]]
+        return not notConsistent
+
+    def __backTrackWithFullLookAhead(self, assignments: dict):
+        if len(assignments) == len(self.__varsD):
+            return assignments
+
+        var = self.__getUnassignedVars(assignments)
+
+        for value in self.__getDomain(var):
+            if self.__isConsistent(var, value, assignments):
+                assignments[var] = value
+
+                if self.__full_look_ahead(assignments):
+                    result = self.__backTrackSearch(assignments)
+                    if result is not None:
+                        return result
+                del assignments[var]
+        return None
+
+    def __backTrackSearchWithForwardChecking(self, assignments: dict):
+
+        if len(assignments) == len(self.__varsD):
+            return assignments
+
+        var = self.__getUnassignedVars(assignments)
+
+        for value in self.__getDomain(var):
+            if self.__isConsistent(var, value, assignments):
+                assignments[var] = value
+
+                if self.__forward_checking(assignments):
+                    result = self.__backTrackSearch(assignments)
+                    if result is not None:
+                        return result
+                del assignments[var]
+        return None
 
     def __backTrackSearch(self, assignments):
         """
@@ -97,14 +179,18 @@ class CSPInstance:
                 del assignments[var]
         return None
 
+    def forwardChecking(self):
+        assignments = dict()
+        return self.__backTrackSearchWithForwardChecking(assignments)
+
     def backTrackSearch(self):
         assignments = dict()
         return self.__backTrackSearch(assignments)
 
+    def fullLookAhead(self):
+        assignments = dict()
+        return self.__backTrackWithFullLookAhead(assignments)
+
     def arcConsistency(self):
         self.__arc_consistency()
         print(self.__varsD)
-
-
-
-
