@@ -183,7 +183,7 @@ class RBModel:
     """
     implementing the random binary model for generating random binary CSP models
     the required parameters are provided by user.
-    then, an instance of a csp is created by the class CSPInstance
+    then, an instance of a csp is created by the class CSPInst
     """
 
     def __init__(self, varCount: int, tightness: float, alpha: float, rCon: float):
