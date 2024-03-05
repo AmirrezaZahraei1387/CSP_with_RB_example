@@ -135,10 +135,6 @@ class CSPInstance:
                 self.__undo_d({var: value}, assignments)
         return None
 
-    def __ful_look_ahead(self, assignments: dict):
-        if len(assignments) == len(self.__VARS):
-            return assignments
-
         var = self.__get_unassigned_variables(assignments)
         for value in self.__order_d_values(var):
             if self.__is_consistent(var, value, assignments):
