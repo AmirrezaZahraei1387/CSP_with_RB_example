@@ -58,5 +58,8 @@ class RBModel:
             constraints.append((variables, incompatible_tuples))
         return constraints
 
-    def getModelState(self):
+    def getModelDetails(self):
         return self.__variables, self.__domain, self.__constraints
+
+    def getModelState(self):
+        return self.__domainSize, self.__constraintCount, self.__incTupleCount
