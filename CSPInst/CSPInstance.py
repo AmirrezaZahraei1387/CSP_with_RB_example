@@ -193,4 +193,3 @@ class CSPInstance:
 
     def arcConsistency(self):
         self.__arc_consistency()
-        print(self.__varsD)
